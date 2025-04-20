@@ -3,29 +3,35 @@ pragma solidity ^0.8.18;
 
 contract Voting {
     struct Candidate {
+        uint voteCount;
         uint id;
         string name;
-        uint voteCount;
     }
 
     mapping(uint => Candidate) public candidates;
     uint public candidatesCount;
 
-    constructor() {
-        // optional: add initial candidates here
+    event CandidateAdded(uint indexed id, string name);
+    event Voted(uint indexed id);
+
+    // Add a new candidate
+    function addCandidate(string calldata _name) external {
+        uint id = ++candidatesCount;
+        candidates[id] = Candidate(0, id, _name);
+        emit CandidateAdded(id, _name);
     }
 
-    function addCandidate(string memory _name) public {
-        candidatesCount++;
-        candidates[candidatesCount] = Candidate(candidatesCount, _name, 0);
+    // Cast a vote for a candidate by ID
+    function vote(uint _id) external {
+        require(_id > 0 && _id <= candidatesCount, "Invalid candidate ID");
+        unchecked {
+            candidates[_id].voteCount++;
+        }
+        emit Voted(_id);
     }
 
-    function vote(uint _id) public {
-        require(_id > 0 && _id <= candidatesCount, "Invalid candidate");
-        candidates[_id].voteCount++;
-    }
-
-    function getCandidate(uint _id) public view returns (Candidate memory) {
+    // Get candidate details by ID
+    function getCandidate(uint _id) external view returns (Candidate memory) {
         require(_id > 0 && _id <= candidatesCount, "Invalid candidate ID");
         return candidates[_id];
     }
